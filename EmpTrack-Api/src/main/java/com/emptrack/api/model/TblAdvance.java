@@ -2,50 +2,59 @@ package com.emptrack.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "tbl_advance")
-@Data
 public class TblAdvance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "bt_code", nullable = false)
+    @Column(name = "advance_id", unique = true)
+    private String advanceId;
+
+    @Column(name = "bt_code")
     private String btCode;
 
-    @Column(name = "company_code", nullable = false)
+    @Column(name = "company_code")
     private String companyCode;
 
-    @Column(name = "emp_code", nullable = false)
+    @Column(name = "emp_code")
     private String empCode;
 
-    @Column(name = "employee_id", nullable = false)
-    private Long employeeId;
+    @Column(name = "request_date")
+    private LocalDate requestDate;
 
-    @Column(name = "advance_date", nullable = false)
-    private LocalDate advanceDate;
+    @Column(name = "amount")
+    private Double amount;
 
-    @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    @Column(name = "repay_month")
+    private String repayMonth;
 
-    @Column(name = "reason")
-    private String reason;
+    @Column(name = "remarks")
+    private String remarks;
 
     @Column(name = "status")
     private Integer status = 1;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

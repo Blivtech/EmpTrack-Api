@@ -11,5 +11,6 @@ public interface ShiftRepository extends JpaRepository<TblShift, Long> {
     Optional<TblShift> findTopByOrderByIdDesc();
     List<TblShift> findByCompanyCodeAndStatus(String companyCode, Integer status);
     List<TblShift> findByBtCodeAndCompanyCode(String btCode,String companyCode);
+    TblShift findByShiftCode(String shiftCode);
     void deleteByCompanyCode(String companyCode);
 }

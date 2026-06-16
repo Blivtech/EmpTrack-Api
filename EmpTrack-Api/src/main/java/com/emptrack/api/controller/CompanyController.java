@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/companies")
 public class CompanyController {
 
@@ -21,11 +20,11 @@ public class CompanyController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/update/{companyCode}")
     public ResponseEntity<ApiResponse<?>> updateCompany(
-            @PathVariable String id,
+            @PathVariable String companyCode,
             @RequestBody CompanyRequest request) {
-        ApiResponse<?> response = companyService.updateCompany(id, request);
+        ApiResponse<?> response = companyService.updateCompany(companyCode, request);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 

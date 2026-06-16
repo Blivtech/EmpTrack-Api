@@ -86,7 +86,7 @@ public class CompanyService {
 
     // ── Update Company + Shifts ────────────────────────────
     @Transactional
-    public ApiResponse<?> updateCompany(String code, CompanyRequest request) {
+    public ApiResponse<?> updateCompany(String companyCode, CompanyRequest request) {
 
         // Validations
         if (request.getBtCode() == null || request.getBtCode().isEmpty())
@@ -96,12 +96,12 @@ public class CompanyService {
             return ApiResponse.error(400, "Company name is required");
 
         // Existence check
-        TblCompany company = companyRepository.findByCompanyCode(code);
+        TblCompany company = companyRepository.findByCompanyCode(companyCode);
         if (company == null)
             return ApiResponse.error(404, "Company not found");
 
         // Duplicate check (exclude current id)
-        if (companyRepository.existsByNameAndBtCodeAndCompanyCodeNot(request.getName(), request.getBtCode(), code))
+        if (companyRepository.existsByNameAndBtCodeAndCompanyCodeNot(request.getName(), request.getBtCode(), companyCode))
             return ApiResponse.error(409, "Company name already exists");
 
         // Update company fields
@@ -117,10 +117,10 @@ public class CompanyService {
         // Delete old shifts and save new ones
         List<TblShift> updatedShifts = new ArrayList<>();
         if (request.getShifts() != null && !request.getShifts().isEmpty()) {
-            shiftRepository.deleteByCompanyCode(code);
-            updatedShifts = saveShifts(request.getBtCode(), code, request.getShifts());
+            shiftRepository.deleteByCompanyCode(companyCode);
+            updatedShifts = saveShifts(request.getBtCode(), companyCode, request.getShifts());
         } else {
-            updatedShifts = shiftRepository.findByCompanyCodeAndStatus(code, 1);
+            updatedShifts = shiftRepository.findByCompanyCodeAndStatus(companyCode, 1);
         }
 
         return ApiResponse.success("Company updated successfully", new CompanyResponse(updatedCompany, updatedShifts));

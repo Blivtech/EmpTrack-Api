@@ -1,6 +1,7 @@
 package com.emptrack.api.controller;
 
 import com.emptrack.api.dto.*;
+import com.emptrack.api.model.TblUsers;
 import com.emptrack.api.response.ApiResponse;
 import com.emptrack.api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")    // ✅ Add this
 
 public class AuthController {
 
@@ -42,4 +42,13 @@ public class AuthController {
         }
     }
 
+    // ✅ Login
+    @PostMapping("/login/admin")
+    public ResponseEntity<?> loginAdmin(
+            @RequestBody AdminLoginRequest req
+    ) {
+        return ResponseEntity.ok(
+                authService.loginAdmin(req)
+        );
+    }
 }

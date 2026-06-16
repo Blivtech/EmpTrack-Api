@@ -149,29 +149,33 @@ public class AttendanceService {
             .build();
     }
 
-    // ─────────────────────────────────────────
-    // ✅ Update attendance (PUT)
-    // ─────────────────────────────────────────
+
     @Transactional
     public AttendanceResponse updateAttendance(
-        String attendanceId,
-        AttendanceRequest req
+            String attendanceId,
+            AttendanceRequest req
     ) {
-        // ✅ Only allow today
         if (!req.getAttendanceDate().equals(LocalDate.now())) {
             throw new RuntimeException(
-                "Attendance can only be edited for today"
+                    "Attendance can only be edited for today"
             );
         }
 
-        // ✅ Find existing
-        TblAttendance attendance = attendanceRepo
-            .findByAttendanceId(attendanceId)
-            .orElseThrow(() -> new RuntimeException(
-                "Attendance not found: " + attendanceId
-            ));
+        TblAttendance existing = attendanceRepo
+                .findByAttendanceId(attendanceId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Attendance not found: " + attendanceId
+                ));
 
-        // ✅ Recalculate counts
+
+        detailRepo.deleteByAttendanceId(attendanceId);
+        detailRepo.flush();     // ← force DELETE now
+
+        // ✅ Step 2 — Delete old header
+        attendanceRepo.delete(existing);
+        attendanceRepo.flush(); // ← force DELETE now
+
+        // ✅ Step 3 — Recalculate counts
         double presentCount = 0;
         int absentCount     = 0;
         int weekoffCount    = 0;
@@ -187,55 +191,61 @@ public class AttendanceService {
             }
         }
 
-        // ✅ Update header
-        attendance.setTotalEmployees(req.getEmployees().size());
-        attendance.setPresentCount(presentCount);
-        attendance.setAbsentCount(absentCount);
-        attendance.setWeekoffCount(weekoffCount);
-        attendance.setLeaveCount(leaveCount);
-        attendance.setHolidayCount(holidayCount);
-        attendance.setMarkedBy(req.getMarkedBy());
-        attendanceRepo.save(attendance);
-
-        // ✅ Delete old details
-        detailRepo.deleteByAttendanceId(attendanceId);
-
-        // ✅ Save new details
-        List<TblAttendanceDetail> details = req.getEmployees().stream()
-            .map(emp -> TblAttendanceDetail.builder()
-                .detailId(generateDetailId(attendanceId, emp.getEmpCode()))
-                .attendanceId(attendanceId)
+        // ✅ Step 4 — Recreate header with same attendanceId
+        TblAttendance newHeader = TblAttendance.builder()
+                .attendanceId(attendanceId)     // ← same ID
                 .btCode(req.getBtCode())
                 .companyCode(req.getCompanyCode())
                 .shiftCode(req.getShiftCode())
-                .empCode(emp.getEmpCode())
-                .empCode(emp.getEmpCode())
                 .attendanceDate(req.getAttendanceDate())
-                .dayPlanStatus(emp.getDayPlanStatus())
-                .workType(emp.getWorkType() != null ? emp.getWorkType() : 1)
-                .presentCount(emp.getPresentCount() != null ? emp.getPresentCount() : 0.0)
-                .absentCount(emp.getAbsentCount() != null ? emp.getAbsentCount() : 0)
-                .remarks(emp.getRemarks() != null ? emp.getRemarks() : "")
+                .totalEmployees(req.getEmployees().size())
+                .presentCount(presentCount)
+                .absentCount(absentCount)
+                .weekoffCount(weekoffCount)
+                .leaveCount(leaveCount)
+                .holidayCount(holidayCount)
                 .markedBy(req.getMarkedBy())
-                .build()
-            ).toList();
+                .status(1)
+                .build();
+
+        attendanceRepo.save(newHeader);
+        attendanceRepo.flush(); // ← force INSERT now
+
+        // ✅ Step 5 — Recreate details
+        List<TblAttendanceDetail> details = req.getEmployees().stream()
+                .map(emp -> TblAttendanceDetail.builder()
+                        .detailId(generateDetailId(attendanceId, emp.getEmpCode()))
+                        .attendanceId(attendanceId)
+                        .btCode(req.getBtCode())
+                        .companyCode(req.getCompanyCode())
+                        .shiftCode(req.getShiftCode())
+                        .empCode(emp.getEmpCode())
+                        .attendanceDate(req.getAttendanceDate())
+                        .dayPlanStatus(emp.getDayPlanStatus())
+                        .workType(emp.getWorkType()      != null ? emp.getWorkType()      : 1)
+                        .presentCount(emp.getPresentCount() != null ? emp.getPresentCount() : 0.0)
+                        .absentCount(emp.getAbsentCount()   != null ? emp.getAbsentCount()  : 0)
+                        .remarks(emp.getRemarks()        != null ? emp.getRemarks()        : "")
+                        .markedBy(req.getMarkedBy())
+                        .build()
+                ).toList();
 
         detailRepo.saveAll(details);
 
         return AttendanceResponse.builder()
-            .attendanceId(attendanceId)
-            .companyCode(req.getCompanyCode())
-            .shiftCode(req.getShiftCode())
-            .attendanceDate(req.getAttendanceDate())
-            .totalEmployees(req.getEmployees().size())
-            .presentCount(presentCount)
-            .absentCount(absentCount)
-            .weekoffCount(weekoffCount)
-            .leaveCount(leaveCount)
-            .holidayCount(holidayCount)
-            .isMarked(true)
-            .mode("EDIT")
-            .build();
+                .attendanceId(attendanceId)
+                .companyCode(req.getCompanyCode())
+                .shiftCode(req.getShiftCode())
+                .attendanceDate(req.getAttendanceDate())
+                .totalEmployees(req.getEmployees().size())
+                .presentCount(presentCount)
+                .absentCount(absentCount)
+                .weekoffCount(weekoffCount)
+                .leaveCount(leaveCount)
+                .holidayCount(holidayCount)
+                .isMarked(true)
+                .mode("EDIT")
+                .build();
     }
 
     // ─────────────────────────────────────────
@@ -328,7 +338,7 @@ public class AttendanceService {
                 .findFirst();
 
             return ShiftStatusResponse.builder()
-                .shiftId(shift.getShiftCode())
+                .shiftCode(shift.getShiftCode())
                 .shiftName(shift.getShiftName())
                 .attendanceId(att.map(TblAttendance::getAttendanceId).orElse(null))
                 .isMarked(att.isPresent())

@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/employees")
 public class EmployeeController {
 
@@ -20,4 +19,26 @@ public class EmployeeController {
         ApiResponse<?> response = employeeService.saveEmployee(request);
         return ResponseEntity.status(response.getCode()).body(response);
     }
+    // ✅ Update employee
+    @PutMapping("/{empCode}/{companyCode}")
+    public ResponseEntity<?> updateEmployee(
+            @PathVariable String empCode,
+            @PathVariable String companyCode,
+            @RequestBody  TblEmployee request
+    ) {
+        return ResponseEntity.ok(
+                employeeService.updateEmployee(empCode, companyCode, request)
+        );
+    }
+
+    @DeleteMapping("/{empCode}")
+    public ResponseEntity<?> deleteEmployee(
+            @PathVariable  String empCode,
+            @RequestParam  String companyCode
+    ) {
+        return ResponseEntity.ok(
+                employeeService.deleteEmployee(empCode, companyCode)
+        );
+    }
+
 }

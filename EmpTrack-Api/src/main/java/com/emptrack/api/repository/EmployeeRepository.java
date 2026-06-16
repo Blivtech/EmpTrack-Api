@@ -14,5 +14,9 @@ public interface EmployeeRepository extends JpaRepository<TblEmployee, Long> {
 
     TblEmployee  findByEmpCode(String empCode);
     List<TblEmployee> findByBtCodeAndStatus(String btCode, Integer status);
+    List<TblEmployee> findByEmpCodeIn(List<String> empCodes);
 
+    Optional<TblEmployee> findByEmpCodeAndCompanyCode(
+            String empCode, String companyCode
+    );
 }

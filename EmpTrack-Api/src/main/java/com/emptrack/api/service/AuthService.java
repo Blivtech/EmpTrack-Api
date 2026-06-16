@@ -1,19 +1,19 @@
 package com.emptrack.api.service;
 
 import com.emptrack.api.Utility.JwtUtil;
-import com.emptrack.api.dto.LoginRequest;
-import com.emptrack.api.dto.LoginResponse;
-import com.emptrack.api.dto.RegisterRequest;
-import com.emptrack.api.dto.RegisterResponse;
+import com.emptrack.api.dto.*;
 import com.emptrack.api.model.TblBtSequence;
 import com.emptrack.api.model.TblUsers;
 import com.emptrack.api.repository.BtSequenceRepository;
 import com.emptrack.api.repository.UserRepository;
+import com.emptrack.api.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -116,5 +116,26 @@ public class AuthService {
                 user.getUserType(),
                 token
         );
+    }
+    @Transactional
+    public ApiResponse<?> loginAdmin(AdminLoginRequest req) {
+
+        // ✅ Static admin check
+        if ("admin".equals(req.getName()) &&
+                "123".equals(req.getPassword())) {
+
+            // ✅ Get all active users from DB
+            List<TblUsers> allUsers = userRepository
+                    .findAllByActiveStatusOrderByDisplayNameAsc(1);
+
+            // ✅ Return all users directly
+            return ApiResponse.success(
+                    "Login successful",
+                    allUsers
+            );
+        }
+
+        // ✅ Wrong credentials
+        return ApiResponse.error(401, "Invalid credentials");
     }
 }
