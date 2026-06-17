@@ -15,4 +15,6 @@ public class ShiftAttendanceSummaryResponse {
     private int    presentCount;
     private int    leaveCount;
     private int    totalCount;
+    private int    holidayCount;     // ✅ Add
+    private int    weekOffCount;
 }

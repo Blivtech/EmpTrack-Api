@@ -29,4 +29,11 @@ public interface AttendanceDetailReportRepository
         LocalDate attendanceDate, String shiftCode,
         Integer absentCount
     );
+
+    // ✅ Holiday + WeekOff — dayPlanStatus IN (3, 4)
+    List<TblAttendanceDetail> findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndDayPlanStatusIn(
+            String btCode, String companyCode,
+            LocalDate attendanceDate, String shiftCode,
+            List<Integer> dayPlanStatuses
+    );
 }

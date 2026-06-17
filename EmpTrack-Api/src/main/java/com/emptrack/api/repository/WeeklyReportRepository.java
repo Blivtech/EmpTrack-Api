@@ -1,32 +1,37 @@
 package com.emptrack.api.repository;
 
-import com.emptrack.api.model.TblAttendance;
+import com.emptrack.api.model.TblAttendanceDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface WeeklyReportRepository
-    extends JpaRepository<TblAttendance, Long> {
+    extends JpaRepository<TblAttendanceDetail, Long> {
 
-    // ✅ Get all headers for a date range + shift
-    List<TblAttendance> findByBtCodeAndCompanyCodeAndShiftCodeAndAttendanceDateBetweenOrderByAttendanceDateAsc(
+    // ✅ All details for btCode + company + week range
+    List<TblAttendanceDetail>
+    findByBtCodeAndCompanyCodeAndAttendanceDateBetweenOrderByAttendanceDateAsc(
+        String btCode, String companyCode,
+        LocalDate startDate, LocalDate endDate
+    );
+
+    // ✅ All details for shift + week range
+    List<TblAttendanceDetail>
+    findByBtCodeAndCompanyCodeAndShiftCodeAndAttendanceDateBetweenOrderByAttendanceDateAsc(
         String btCode, String companyCode,
         String shiftCode,
-        LocalDate weekStart, LocalDate weekEnd
+        LocalDate startDate, LocalDate endDate
     );
 
-    // ✅ Get single header
-    Optional<TblAttendance> findByBtCodeAndCompanyCodeAndShiftCodeAndAttendanceDate(
+    // ✅ All details for employee + shift + week range
+    List<TblAttendanceDetail>
+    findByBtCodeAndCompanyCodeAndEmpCodeAndShiftCodeAndAttendanceDateBetweenOrderByAttendanceDateAsc(
         String btCode, String companyCode,
-        String shiftCode, LocalDate attendanceDate
-    );
-
-    // ✅ Get all headers for date range (all shifts)
-    List<TblAttendance> findByBtCodeAndCompanyCodeAndAttendanceDateBetween(
-        String btCode, String companyCode,
-        LocalDate weekStart, LocalDate weekEnd
+        String empCode, String shiftCode,
+        LocalDate startDate, LocalDate endDate
     );
 }

@@ -8,8 +8,10 @@ import lombok.Data;
 public class AttendanceEmployeeResponse {
     private String empCode;
     private String empName;
-    private String department;
-    private String designation;
+    private String desgCode;
+    private String desgName;
+    private String deptCode;
+    private String deptName;
     private String status;            // P / A / L / H / WO
     private String statusLabel;       // Present / Absent / Late / Holiday
     private int    lateMinutes;

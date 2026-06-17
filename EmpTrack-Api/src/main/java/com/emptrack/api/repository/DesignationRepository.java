@@ -11,5 +11,7 @@ public interface DesignationRepository extends JpaRepository<TblDesignation, Lon
     boolean existsByNameAndBtCode(String name, String btCode);
     Optional<TblDesignation> findTopByOrderByIdDesc();
     List<TblDesignation> findByBtCodeAndStatus(String btCode, Integer status);
+    List<TblDesignation> findByDesgCodeIn(List<String> desgCodes);
+    TblDesignation findByDesgCode(String desgCode);
 
 }

@@ -1,5 +1,3 @@
-
-// ─── WeeklyReportResponse.java ────────────────────
 package com.emptrack.api.dto;
 
 import lombok.Builder;
@@ -8,16 +6,15 @@ import java.util.List;
 
 @Data
 @Builder
-public class WeeklyReportResponse {
+public class MonthlyReportResponse {
     private String btCode;
     private String companyCode;
-    private String weekStart;
-    private String weekEnd;
+    private String month;
     private int    totalEmployees;
     private int    totalPresent;
     private int    totalAbsent;
     private int    totalHoliday;
     private int    totalWeekOff;
-    private int    workDays;
-    private List<WeeklyShiftSummaryResponse> shifts;
+    private int    workingDays;
+    private List<MonthlyEmployeeSummaryResponse> employees;
 }

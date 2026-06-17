@@ -11,5 +11,7 @@ public interface DepartmentRepository extends JpaRepository<TblDepartment, Long>
     boolean existsByNameAndBtCode(String name, String btCode);
     Optional<TblDepartment> findTopByOrderByIdDesc();
     List<TblDepartment> findByBtCodeAndStatus(String btCode, Integer status);
+    List<TblDepartment> findByDeptCodeIn(List<String> deptCodes);
+    TblDepartment findByDeptCode(String deptCode);
 
 }

@@ -18,7 +18,8 @@ public class DailyReportService {
     private final AttendanceDetailReportRepository detailRepo;
     private final ShiftRepository                  shiftRepo;
     private final EmployeeRepository               employeeRepo;
-
+    private final DepartmentRepository   departmentRepo;
+    private final DesignationRepository  designationRepo;
     // ─────────────────────────────────────
     // ✅ Get full daily summary — all shifts
     // ─────────────────────────────────────
@@ -50,6 +51,7 @@ public class DailyReportService {
         int totalEmployees  = summaries.stream().mapToInt(
             s -> s.getTotalCount()
         ).sum();
+
         int submittedShifts = (int) summaries.stream()
             .filter(s -> s.getSubmittedAt() != null).count();
         int pendingShifts   = summaries.size() - submittedShifts;
@@ -90,10 +92,11 @@ public class DailyReportService {
                 .attendanceDate(date.toString())
                 .submittedAt(null)          // ← null = pending
                 .presentCount(0)
+                .holidayCount(0)
+                .weekOffCount(0)
                 .leaveCount(0)
                 .totalCount(0)
-
-                .build();
+                    .build();
         }
 
         TblAttendance att = header.get();
@@ -104,10 +107,11 @@ public class DailyReportService {
 
         // ✅ leave = absent + leave + holiday
         int leaveCount = 0;
-        if (att.getAbsentCount()  != null) leaveCount += att.getAbsentCount();
         if (att.getLeaveCount()   != null) leaveCount += att.getLeaveCount();
-        if (att.getHolidayCount() != null) leaveCount += att.getHolidayCount();
-
+        int holidayCount  = att.getHolidayCount()  != null
+                ? att.getHolidayCount() : 0;
+        int weekOffCount  = att.getWeekoffCount()  != null
+                ? att.getWeekoffCount() : 0;
         int totalCount = att.getTotalEmployees() != null
             ? att.getTotalEmployees() : 0;
 
@@ -127,6 +131,8 @@ public class DailyReportService {
             .submittedAt(submittedAt)
             .presentCount(presentCount)
             .leaveCount(leaveCount)
+             .holidayCount(holidayCount)
+             .weekOffCount(weekOffCount)
             .totalCount(totalCount)
             .build();
     }
@@ -135,65 +141,120 @@ public class DailyReportService {
     // ✅ Get employees — by shift + type
     //    Uses tbl_attendance_detail rows
     // ─────────────────────────────────────
+
+    // ✅ getEmployeesByShiftAndType — full fix
     public List<AttendanceEmployeeResponse> getEmployeesByShiftAndType(
-        String btCode,
-        String companyCode,
-        String date,
-        String shiftCode,
-        String type         // PRESENT or LEAVE
+            String btCode, String companyCode,
+            String date, String shiftCode, String type
     ) {
         LocalDate attendanceDate = LocalDate.parse(date);
 
-        // ✅ Fetch detail rows based on type
+        // ✅ Fetch detail rows by type
         List<TblAttendanceDetail> details;
         if (type.equals("PRESENT")) {
-            // present_count > 0 means present / late
             details = detailRepo
-                .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndPresentCountGreaterThan(
-                    btCode, companyCode, attendanceDate, shiftCode, 0.0
-                );
+                    .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndPresentCountGreaterThan(
+                            btCode, companyCode, attendanceDate, shiftCode, 0.0
+                    );
+        } else if (type.equals("ABSENT")) {
+            details = detailRepo
+                    .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndAbsentCount(
+                            btCode, companyCode, attendanceDate, shiftCode, 1
+                    );
+        } else if (type.equals("HOLIDAY_WO")) {
+            details = detailRepo
+                    .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndDayPlanStatusIn(
+                            btCode, companyCode, attendanceDate, shiftCode,
+                            List.of(2, 3)
+                    );
         } else {
-            // absent_count = 1 means absent / leave / holiday
             details = detailRepo
-                .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndAbsentCount(
-                    btCode, companyCode, attendanceDate, shiftCode, 1
-                );
+                    .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCode(
+                            btCode, companyCode, attendanceDate, shiftCode
+                    );
         }
 
-        // ✅ Batch fetch employee details — one query
+        // ✅ Batch fetch employees
         List<String> empCodes = details.stream()
-            .map(TblAttendanceDetail::getEmpCode)
-            .distinct()
-            .collect(Collectors.toList());
+                .map(TblAttendanceDetail::getEmpCode)
+                .distinct()
+                .collect(Collectors.toList());
 
         Map<String, TblEmployee> empMap = employeeRepo
-            .findByEmpCodeIn(empCodes)
-            .stream()
-            .collect(Collectors.toMap(
-                TblEmployee::getEmpCode,
-                e -> e
-            ));
+                .findByEmpCodeIn(empCodes)
+                .stream()
+                .collect(Collectors.toMap(
+                        TblEmployee::getEmpCode, e -> e
+                ));
+
+        // ✅ Batch fetch dept names from tbl_departments
+        List<String> deptCodes = empMap.values().stream()
+                .map(TblEmployee::getDeptCode)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<String, String> deptMap = departmentRepo
+                .findByDeptCodeIn(deptCodes)
+                .stream()
+                .collect(Collectors.toMap(
+                        TblDepartment::getDeptCode,
+                        TblDepartment::getName     // ✅ name from tbl_departments
+                ));
+
+        // ✅ Batch fetch desg names from tbl_designations
+        List<String> desgCodes = empMap.values().stream()
+                .map(TblEmployee::getDesgCode)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<String, String> desgMap = designationRepo
+                .findByDesgCodeIn(desgCodes)
+                .stream()
+                .collect(Collectors.toMap(
+                        TblDesignation::getDesgCode,
+                        TblDesignation::getName     // ✅ name from tbl_designations
+                ));
 
         // ✅ Map to response
         return details.stream()
-            .map(d -> {
-                TblEmployee emp = empMap.get(d.getEmpCode());
+                .map(d -> {
+                    TblEmployee emp = empMap.get(d.getEmpCode());
+                    String status   = resolveStatus(d);
 
-                // ✅ Determine status from detail fields
-                String status = resolveStatus(d);
+                    // ✅ Get dept name from deptMap
+                    String deptName = "";
+                    if (emp != null && emp.getDeptCode() != null) {
+                        deptName = deptMap.getOrDefault(
+                                emp.getDeptCode(), ""
+                        );
+                    }
 
-                return AttendanceEmployeeResponse.builder()
-                    .empCode(d.getEmpCode())
-                    .empName(emp != null ? emp.getName() : d.getEmpCode())
-                    .department(emp != null ? emp.getDeptCode() : "")
-                    .designation(emp != null ? emp.getDesgCode() : "")
-                    .status(status)
-                    .statusLabel(statusLabel(status))
-                    .lateMinutes(0)     // add if your detail has late_minutes col
-                    .build();
-            })
-            .sorted(Comparator.comparing(AttendanceEmployeeResponse::getEmpName))
-            .collect(Collectors.toList());
+                    // ✅ Get desg name from desgMap
+                    String desgName = "";
+                    if (emp != null && emp.getDesgCode() != null) {
+                        desgName = desgMap.getOrDefault(
+                                emp.getDesgCode(), ""
+                        );
+                    }
+
+                    return AttendanceEmployeeResponse.builder()
+                            .empCode(d.getEmpCode())
+                            .empName(emp != null ? emp.getName() : d.getEmpCode())
+                            .deptCode(emp != null ? emp.getDeptCode() : "")
+                            .desgCode(emp != null ? emp.getDesgCode() : "")
+                            .deptName(deptName)     // ✅ "Construction"
+                            .desgName(desgName)     // ✅ "Supervisor"
+                            .status(status)
+                            .statusLabel(statusLabel(status))
+                            .lateMinutes(0)
+                            .build();
+                })
+                .sorted(Comparator.comparing(
+                        AttendanceEmployeeResponse::getEmpName
+                ))
+                .collect(Collectors.toList());
     }
 
     // ─────────────────────────────────────

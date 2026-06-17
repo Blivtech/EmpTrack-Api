@@ -6,11 +6,9 @@ import java.util.List;
 
 @Data
 @Builder
-public class WeeklyShiftSummaryResponse {
+public class WeeklyShiftReportResponse {
     private String shiftCode;
     private String shiftName;
-    private String startTime;
-    private String endTime;
     private String weekStart;
     private String weekEnd;
     private int    totalEmployees;
@@ -18,7 +16,6 @@ public class WeeklyShiftSummaryResponse {
     private int    totalAbsent;
     private int    totalHoliday;
     private int    totalWeekOff;
-    private int    submittedDays;
-    private int    totalDays;
+    private int    workDays;
     private List<WeeklyEmployeeSummaryResponse> employees;
 }

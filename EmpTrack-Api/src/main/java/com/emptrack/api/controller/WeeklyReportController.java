@@ -1,64 +1,55 @@
 package com.emptrack.api.controller;
 
-import com.emptrack.api.dto.*;
-import com.emptrack.api.response.ApiResponse;
 import com.emptrack.api.service.WeeklyReportService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/reports/attendance")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/reports/attendance/weekly")
 @RequiredArgsConstructor
 public class WeeklyReportController {
 
     private final WeeklyReportService service;
 
     // ✅ Weekly summary — all shifts
-    @GetMapping("/weekly")
-
-    public ResponseEntity<ApiResponse<WeeklyReportResponse>> getWeeklySummary(
+    @GetMapping
+    public ResponseEntity<?> getWeeklyReport(
         @RequestParam String btCode,
         @RequestParam String companyCode,
         @RequestParam String weekStart,
         @RequestParam String weekEnd
     ) {
         return ResponseEntity.ok(
-            ApiResponse.success("",
-                service.getWeeklySummary(
-                    btCode, companyCode, weekStart, weekEnd
-                )
+            service.getWeeklyReport(
+                btCode, companyCode,
+                weekStart, weekEnd
             )
         );
     }
 
-    // ✅ Shift employee list — Present or Absent
-    @GetMapping("/weekly/employees")
-    public ResponseEntity<ApiResponse<List<WeeklyShiftEmployeeResponse>>> getShiftEmployees(
+    // ✅ Shift employee list
+    @GetMapping("/employees")
+    public ResponseEntity<?> getShiftEmployees(
         @RequestParam String btCode,
         @RequestParam String companyCode,
         @RequestParam String weekStart,
         @RequestParam String weekEnd,
         @RequestParam String shiftCode,
-        @RequestParam String type       // PRESENT or ABSENT
+        @RequestParam String type       // PRESENT / ABSENT / HOLIDAY_WO
     ) {
         return ResponseEntity.ok(
-            ApiResponse.success("",
-                service.getShiftEmployees(
-                    btCode, companyCode,
-                    weekStart, weekEnd,
-                    shiftCode, type
-                )
+            service.getShiftEmployees(
+                btCode, companyCode,
+                weekStart, weekEnd,
+                shiftCode, type
             )
         );
     }
 
-    // ✅ Employee weekly detail — day by day
-    @GetMapping("/weekly/employee-detail")
-    public ResponseEntity<ApiResponse<EmployeeWeeklyDetailResponse>> getEmployeeDetail(
+    // ✅ Employee weekly detail
+    @GetMapping("/employee-detail")
+    public ResponseEntity<?> getEmployeeWeeklyDetail(
         @RequestParam String btCode,
         @RequestParam String companyCode,
         @RequestParam String weekStart,
@@ -67,13 +58,44 @@ public class WeeklyReportController {
         @RequestParam String empCode
     ) {
         return ResponseEntity.ok(
-            ApiResponse.success("",
-                service.getEmployeeDetail(
-                    btCode, companyCode,
-                    weekStart, weekEnd,
-                    shiftCode, empCode
-                )
+            service.getEmployeeWeeklyDetail(
+                btCode, companyCode,
+                weekStart, weekEnd,
+                shiftCode, empCode
             )
         );
     }
+
+    // ✅ Weekly overall — all employees all shifts
+    @GetMapping("/overall")
+    public ResponseEntity<?> getWeeklyOverallReport(
+            @RequestParam String btCode,
+            @RequestParam String companyCode,
+            @RequestParam String weekStart,
+            @RequestParam String weekEnd
+    ) {
+        return ResponseEntity.ok(
+                service.getWeeklyOverallReport(
+                        btCode, companyCode, weekStart, weekEnd
+                )
+        );
+    }
+
+    // ✅ Weekly shift wise — employees for specific shift
+    @GetMapping("/shift")
+    public ResponseEntity<?> getWeeklyShiftReport(
+            @RequestParam String btCode,
+            @RequestParam String companyCode,
+            @RequestParam String weekStart,
+            @RequestParam String weekEnd,
+            @RequestParam String shiftCode
+    ) {
+        return ResponseEntity.ok(
+                service.getWeeklyShiftReport(
+                        btCode, companyCode,
+                        weekStart, weekEnd, shiftCode
+                )
+        );
+    }
+
 }

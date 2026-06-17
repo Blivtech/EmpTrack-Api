@@ -13,4 +13,7 @@ public interface ShiftRepository extends JpaRepository<TblShift, Long> {
     List<TblShift> findByBtCodeAndCompanyCode(String btCode,String companyCode);
     TblShift findByShiftCode(String shiftCode);
     void deleteByCompanyCode(String companyCode);
+
+    List<TblShift> findByShiftCodeIn(List<String> shiftCodes);
+
 }
