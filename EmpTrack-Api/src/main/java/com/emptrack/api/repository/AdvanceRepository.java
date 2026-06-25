@@ -5,20 +5,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface AdvanceRepository extends JpaRepository<TblAdvance, Long> {
 
-    Optional<TblAdvance> findByAdvanceId(String advanceId);
+    Optional<TblAdvance> findByAdvanceId(String advanceId);          // ← this was missing
 
-    // ✅ Get all by company
-    List<TblAdvance> findByBtCodeAndCompanyCodeOrderByRequestDateDesc(
-        String btCode, String companyCode
-    );
 
-    // ✅ Get by month
+
     @Query("""
         SELECT a FROM TblAdvance a
         WHERE a.btCode = :btCode
@@ -27,23 +25,15 @@ public interface AdvanceRepository extends JpaRepository<TblAdvance, Long> {
         ORDER BY a.requestDate DESC
     """)
     List<TblAdvance> findByMonth(
-        @Param("btCode") String btCode,
-        @Param("companyCode") String companyCode,
-        @Param("month") String month
+            @Param("btCode") String btCode,
+            @Param("companyCode") String companyCode,
+            @Param("month") String month
     );
 
-    // ✅ Get by emp
-    List<TblAdvance> findByBtCodeAndCompanyCodeAndEmpCodeOrderByRequestDateDesc(
-        String btCode, String companyCode, String empCode
-    );
 
-    // ✅ Get active advances
-    List<TblAdvance> findByBtCodeAndCompanyCodeAndStatus(
-        String btCode, String companyCode, Integer status
-    );
-
-    // ✅ Get by repay month
-    List<TblAdvance> findByBtCodeAndCompanyCodeAndRepayMonth(
-        String btCode, String companyCode, String repayMonth
+    List<TblAdvance> findByBtCodeAndCompanyCodeAndRequestDateBetweenAndStatusOrderByRequestDateAsc(
+            String btCode, String companyCode,
+            LocalDate startDate, LocalDate endDate,
+            Integer status
     );
 }

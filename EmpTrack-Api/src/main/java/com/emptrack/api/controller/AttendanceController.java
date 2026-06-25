@@ -89,19 +89,25 @@ public class AttendanceController {
         );
     }
 
-    // ✅ Get today's all shifts status — GET
+    // ✅ Fixed — only this method changes, nothing else
     @GetMapping("/today")
     public ResponseEntity<ApiResponse<List<ShiftStatusResponse>>> today(
-        @RequestParam String btCode,
-        @RequestParam String companyId,
-        @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam String btCode,
+            @RequestParam String companyId,
+            @RequestParam(required = false) String date
     ) {
-        LocalDate targetDate = date != null ? date : LocalDate.now();
+        // ✅ Parse the String into LocalDate, default to today if not passed
+        LocalDate targetDate = (date != null && !date.isEmpty())
+                ? LocalDate.parse(date)
+                : LocalDate.now();
+
         List<ShiftStatusResponse> response =
-            attendanceService.getTodayStatus(btCode, companyId, targetDate);
+                attendanceService.getTodayStatus(btCode, companyId, targetDate);
+
         return ResponseEntity.ok(
-            new ApiResponse<>(200, "Success", response)
+                new ApiResponse<>(200, "Success", response)
         );
     }
+
+
 }

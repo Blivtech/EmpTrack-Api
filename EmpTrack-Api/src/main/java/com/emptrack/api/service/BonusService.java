@@ -26,7 +26,7 @@ public class BonusService {
         String bonusId = String.format("BON-%s-%s-%s",
                 req.getBtCode(),
                 req.getEmpCode(),
-                req.getBonusDate().replace("-", "")
+                req.getBonusDate().replace("-", "")+"-"+ System.currentTimeMillis()
         );
 
         TblBonus bonus = new TblBonus();

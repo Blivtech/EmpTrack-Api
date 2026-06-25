@@ -185,19 +185,18 @@ public class MonthlyReportService {
         TblEmployee emp = employeeRepo
                 .findByEmpCode(empCode);
 
-        // ✅ Fetch dept + desg names
         String deptName = "";
         String desgName = "";
         if (emp != null) {
             if (emp.getDeptCode() != null) {
-                deptName = departmentRepo
-                        .findByDeptCode(emp.getDeptCode()).getName();
-
+                TblDepartment dept = departmentRepo.findByDeptCode(emp.getDeptCode());
+                deptName = (dept != null) ? dept.getName() : "";
+                // optional: log so you can spot data issues instead of silently swallowing them
+                // if (dept == null) log.warn("No department found for deptCode={}", emp.getDeptCode());
             }
             if (emp.getDesgCode() != null) {
-                desgName = designationRepo
-                        .findByDesgCode(emp.getDesgCode()).getName();
-
+                TblDesignation desg = designationRepo.findByDesgCode(emp.getDesgCode());
+                desgName = (desg != null) ? desg.getName() : "";
             }
         }
 
@@ -234,11 +233,11 @@ public class MonthlyReportService {
             } else {
                 String status = resolveStatus(d);
                 switch (status) {
-                    case "P", "L" -> {
+                    case "P" -> {
                         presentDates.add(dateStr);
                         presentDays++;
                     }
-                    case "A" -> {
+                    case "L" -> {
                         absentDates.add(dateStr);
                         absentDays++;
                     }

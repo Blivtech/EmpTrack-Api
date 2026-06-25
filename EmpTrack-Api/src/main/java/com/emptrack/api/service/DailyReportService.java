@@ -165,7 +165,7 @@ public class DailyReportService {
             details = detailRepo
                     .findByBtCodeAndCompanyCodeAndAttendanceDateAndShiftCodeAndDayPlanStatusIn(
                             btCode, companyCode, attendanceDate, shiftCode,
-                            List.of(2, 3)
+                            List.of(2, 4)
                     );
         } else {
             details = detailRepo

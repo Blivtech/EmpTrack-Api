@@ -26,34 +26,4 @@ public ResponseEntity<ApiResponse<String>> add(
     return ResponseEntity.ok(ApiResponse.success("Advance saved successfully","[]"));
 }
 
-//    // ✅ Get all — optional month filter
-//    @GetMapping
-//    public ResponseEntity<ApiResponse<List<AdvanceResponse>>> getAll(
-//        @RequestParam String btCode,
-//        @RequestParam String companyCode,
-//        @RequestParam(required = false) String month
-//    ) {
-//        List<AdvanceResponse> list = (month != null && !month.isEmpty())
-//            ? advanceService.getByMonth(btCode, companyCode, month)
-//            : advanceService.getAll(btCode, companyCode);
-//        return ResponseEntity.ok(ApiResponse.success(list));
-//    }
-//
-//    // ✅ Mark recovered
-//    @PutMapping("/recover/{advanceId}")
-//    public ResponseEntity<ApiResponse<AdvanceResponse>> markRecovered(
-//        @PathVariable String advanceId
-//    ) {
-//        AdvanceResponse response = advanceService.markRecovered(advanceId);
-//        return ResponseEntity.ok(ApiResponse.success(response));
-//    }
-//
-//    // ✅ Delete
-//    @DeleteMapping("/{advanceId}")
-//    public ResponseEntity<ApiResponse<String>> delete(
-//        @PathVariable String advanceId
-//    ) {
-//        advanceService.delete(advanceId);
-//        return ResponseEntity.ok(ApiResponse.success("Deleted successfully"));
-//    }
 }

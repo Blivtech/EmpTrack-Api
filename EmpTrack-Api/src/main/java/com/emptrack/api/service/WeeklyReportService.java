@@ -212,7 +212,7 @@ public class WeeklyReportService {
     // ─────────────────────────────────────
     // ✅ 3. Employee weekly detail
     // ─────────────────────────────────────
-    public ApiResponse<?> getEmployeeWeeklyDetail(
+    public ApiResponse<?>  getEmployeeWeeklyDetail(
         String btCode,
         String companyCode,
         String weekStartStr,
@@ -239,19 +239,18 @@ public class WeeklyReportService {
 
         TblShift shift = shiftRepo
             .findByShiftCode(shiftCode);
-
         String deptName = "";
         String desgName = "";
         if (emp != null) {
             if (emp.getDeptCode() != null) {
-                deptName = departmentRepo
-                    .findByDeptCode(emp.getDeptCode()).getName();
+                TblDepartment dept = departmentRepo.findByDeptCode(emp.getDeptCode());
+                deptName = (dept != null) ? dept.getName() : "";
+                // optional: log so you can spot data issues instead of silently swallowing them
+                // if (dept == null) log.warn("No department found for deptCode={}", emp.getDeptCode());
             }
             if (emp.getDesgCode() != null) {
-                desgName = designationRepo
-                    .findByDesgCode(emp.getDesgCode()).getName();
-
-
+                TblDesignation desg = designationRepo.findByDesgCode(emp.getDesgCode());
+                desgName = (desg != null) ? desg.getName() : "";
             }
         }
 

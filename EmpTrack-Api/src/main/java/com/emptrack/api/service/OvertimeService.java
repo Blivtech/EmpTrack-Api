@@ -31,7 +31,7 @@ public class OvertimeService {
         String otId = String.format("OT-%s-%s-%s",
                 req.getBtCode(),
                 req.getEmpCode(),
-                req.getOtDate().replace("-", "")
+                req.getOtDate().replace("-", "")+"-"+ System.currentTimeMillis()
         );
 
         TblOvertime ot = new TblOvertime();

@@ -24,11 +24,11 @@ public class AdvanceService {
     public void addAdvance(AdvanceRequest req) {
         LocalDate requestDate = LocalDate.parse(req.getRequestDate());
 
-        String advanceId = String.format("ADV-%s-%s-%s",
-                req.getBtCode(),
-                req.getEmpCode(),
-                req.getRepayMonth().replace("-", "")
-        );
+
+        String advanceId = "ADV-" + req.getBtCode()+ "-" +  req.getEmpCode() + "-"
+                +req.getRepayMonth().replace("-", "")           // e.g. 202607
+                + "-" + System.currentTimeMillis();     // makes it unique
+
 
         TblAdvance advance = new TblAdvance();
         advance.setAdvanceId(advanceId);
